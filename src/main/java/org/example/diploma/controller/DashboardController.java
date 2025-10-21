@@ -27,6 +27,13 @@ public class DashboardController {
     private final WordService wordService;
     private final ExerciseService exerciseService;
 
+    // Конструктор DashboardController - внедрение зависимостей сервисов
+    // вход:
+    //   - userService - сервис для работы с пользователями
+    //   - moduleService - сервис для работы с модулями
+    //   - wordService - сервис для работы со словами
+    //   - exerciseService - сервис для работы с упражнениями
+    // выход: созданный экземпляр DashboardController
     @Autowired
     public DashboardController(UserService userService, ModuleService moduleService, WordService wordService, ExerciseService exerciseService) {
         this.userService = userService;
@@ -38,6 +45,15 @@ public class DashboardController {
     @Autowired
     private StatsService statsService;
 
+    // teacherDashboard - отображение главной страницы преподавателя
+    // вход:
+    //   - userDetails - данные аутентифицированного пользователя
+    //   - model - модель Spring MVC для передачи данных в представление
+    // выход: имя представления dashboard или перенаправление на логин
+    // логика:
+    //  - получает пользователя по имени из userDetails
+    //  - добавляет в модель модули пользователя
+    //  - возвращает шаблон teacher/dashboard
     @GetMapping("/dashboard")
     public String teacherDashboard(@AuthenticationPrincipal UserDetails userDetails, Model model) {
         Optional<User> userOptional = userService.findByUsername(userDetails.getUsername());
@@ -49,6 +65,15 @@ public class DashboardController {
         return "redirect:/login";
     }
 
+    // listModules - отображение списка модулей преподавателя
+    // вход:
+    //   - userDetails - данные аутентифицированного пользователя
+    //   - model - модель Spring MVC для передачи данных в представление
+    // выход: имя представления со списком модулей или перенаправление на логин
+    // логика:
+    //  - получает пользователя по имени из userDetails
+    //  - добавляет в модель модули пользователя
+    //  - возвращает шаблон teacher/modules
     @GetMapping("/modules")
     public String listModules(@AuthenticationPrincipal UserDetails userDetails, Model model) {
         Optional<User> userOptional = userService.findByUsername(userDetails.getUsername());
@@ -60,12 +85,29 @@ public class DashboardController {
         return "redirect:/login";
     }
 
+    // showCreateModuleForm - отображение формы создания нового модуля
+    // вход: model - модель Spring MVC для передачи данных в представление
+    // выход: имя представления формы создания модуля
+    // логика:
+    //  - добавляет в модель новый пустой объект Module
+    //  - возвращает шаблон teacher/module-form
     @GetMapping("/modules/new")
     public String showCreateModuleForm(Model model) {
         model.addAttribute("module", new Module());
         return "teacher/module-form";
     }
 
+    // createModule - создание нового модуля
+    // вход:
+    //   - userDetails - данные аутентифицированного пользователя
+    //   - module - объект модуля с данными из формы
+    //   - redirectAttributes - атрибуты для перенаправления (сообщения об успехе/ошибке)
+    // выход: строка перенаправления на список модулей или форму создания
+    // логика:
+    //  - проверяет уникальность названия модуля для пользователя
+    //  - сохраняет модуль в базу данных
+    // исключения:
+    //  - возможны исключения при работе с базой данных
     @PostMapping("/modules")
     public String createModule(@AuthenticationPrincipal UserDetails userDetails,
                                @ModelAttribute Module module,
@@ -88,6 +130,15 @@ public class DashboardController {
         return "redirect:/login";
     }
 
+    // showEditModuleForm - отображение формы редактирования модуля
+    // вход:
+    //   - id - идентификатор модуля для редактирования
+    //   - model - модель Spring MVC для передачи данных в представление
+    // выход: имя представления формы редактирования или перенаправление на список модулей
+    // логика:
+    //  - получает модуль по идентификатору
+    //  - добавляет в модель модуль и список слов модуля
+    //  - возвращает шаблон teacher/module-edit
     @GetMapping("/modules/{id}/edit")
     public String showEditModuleForm(@PathVariable Long id, Model model) {
         Optional<Module> moduleOptional = moduleService.getModuleById(id);
@@ -100,6 +151,16 @@ public class DashboardController {
         return "redirect:/teacher/modules";
     }
 
+    // updateModule - обновление данных модуля
+    // вход:
+    //   - id - идентификатор модуля для обновления
+    //   - module - объект модуля с обновленными данными из формы
+    //   - redirectAttributes - атрибуты для перенаправления (сообщения об успехе)
+    // выход: строка перенаправления на список модулей
+    // логика:
+    //  - находит существующий модуль по идентификатору
+    //  - обновляет заголовок и описание модуля
+    //  - сохраняет изменения в базу данных
     @PostMapping("/modules/{id}")
     public String updateModule(@PathVariable Long id,
                                @ModelAttribute Module module,
@@ -115,6 +176,15 @@ public class DashboardController {
         return "redirect:/teacher/modules";
     }
 
+    // deleteModule - удаление модуля
+    // вход:
+    //   - id - идентификатор модуля для удаления
+    //   - redirectAttributes - атрибуты для перенаправления (сообщения об успехе)
+    // выход: строка перенаправления на список модулей
+    // логика:
+    //  - удаляет модуль и все связанные с ним слова
+    // исключения:
+    //  - возможны исключения при работе с базой данных
     @PostMapping("/modules/{id}/delete")
     public String deleteModule(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         moduleService.deleteModule(id);
@@ -123,6 +193,16 @@ public class DashboardController {
         return "redirect:/teacher/modules";
     }
 
+    // addWordToModule - добавление слова в модуль
+    // вход:
+    //   - moduleId - идентификатор модуля
+    //   - english - английское слово
+    //   - russian - русский перевод
+    //   - redirectAttributes - атрибуты для перенаправления (сообщения об успехе)
+    // выход: строка перенаправления на форму редактирования модуля
+    // логика:
+    //  - создает новое слово и связывает его с модулем
+    //  - сохраняет слово в базу данных
     @PostMapping("/modules/{moduleId}/words")
     public String addWordToModule(@PathVariable Long moduleId,
                                   @RequestParam String english,
@@ -141,6 +221,14 @@ public class DashboardController {
         return "redirect:/teacher/modules/" + moduleId + "/edit";
     }
 
+    // deleteWord - удаление слова из модуля
+    // вход:
+    //   - id - идентификатор слова для удаления
+    //   - redirectAttributes - атрибуты для перенаправления (сообщения об успехе)
+    // выход: строка перенаправления на форму редактирования модуля
+    // логика:
+    //  - удаляет слово по идентификатору
+    //  - перенаправляет на страницу редактирования модуля
     @PostMapping("/words/{id}/delete")
     public String deleteWord(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         Optional<Word> wordOptional = wordService.getWordById(id);
@@ -155,6 +243,17 @@ public class DashboardController {
     }
 
     //методы для управления упражнениями
+
+    // showModuleExercises - отображение упражнений модуля
+    // вход:
+    //   - id - идентификатор модуля
+    //   - model - модель Spring MVC для передачи данных в представление
+    // выход: имя представления со списком упражнений или перенаправление с ошибкой
+    // логика:
+    //  - получает модуль и связанные с ним упражнения
+    //  - добавляет данные в модель
+    // исключения:
+    //  - Exception - если произошла ошибка при загрузке упражнений
     @GetMapping("/modules/{id}/exercises")
     public String showModuleExercises(@PathVariable Long id, Model model) {
         try {
@@ -173,6 +272,15 @@ public class DashboardController {
         }
     }
 
+    // generateExercises - генерация упражнений для модуля
+    // вход:
+    //   - id - идентификатор модуля
+    //   - redirectAttributes - атрибуты для перенаправления (сообщения об успехе/ошибке)
+    // выход: строка перенаправления на страницу упражнений модуля
+    // логика:
+    //  - вызывает сервис для генерации упражнений на основе слов модуля
+    // исключения:
+    //  - Exception - если произошла ошибка при генерации упражнений
     @PostMapping("/modules/{id}/generate-exercises")
     public String generateExercises(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         try {
@@ -184,6 +292,13 @@ public class DashboardController {
         return "redirect:/teacher/modules/" + id + "/exercises";
     }
 
+    // deleteExercise - удаление упражнения
+    // вход:
+    //   - id - идентификатор упражнения для удаления
+    //   - redirectAttributes - атрибуты для перенаправления (сообщения об успехе)
+    // выход: строка перенаправления на страницу упражнений модуля
+    // логика:
+    //  - удаляет упражнение по идентификатору
     @PostMapping("/exercises/{id}/delete")
     public String deleteExercise(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         Optional<Exercise> exerciseOptional = exerciseService.getExerciseById(id);
@@ -198,14 +313,31 @@ public class DashboardController {
     }
 
     //для отображения ошибок
+    // handleException - обработчик исключений для контроллера
+    // вход:
+    //   - e - исключение, которое произошло
+    //   - model - модель Spring MVC для передачи данных в представление
+    // выход: имя представления для отображения ошибки
+    // логика:
+    //  - добавляет сообщение об ошибке в модель
+    //  - возвращает шаблон error
     @ExceptionHandler(Exception.class)
     public String handleException(Exception e, Model model) {
         model.addAttribute("error", "An error occurred: " + e.getMessage());
         return "error";
     }
 
-
      //Страница результатов студентов
+     // showResults - отображение результатов студентов
+     // вход:
+     //   - userDetails - данные аутентифицированного пользователя
+     //   - groupId - идентификатор группы для фильтрации (опционально)
+     //   - model - модель Spring MVC для передачи данных в представление
+     // выход: имя представления с результатами или перенаправление на логин
+     // логика:
+     //  - получает статистику студентов по преподавателю
+     //  - получает список групп преподавателя для фильтра
+     //  - добавляет данные в модель
     @GetMapping("/results")
     public String showResults(@AuthenticationPrincipal UserDetails userDetails,
                               @RequestParam(required = false) Long groupId,
@@ -214,10 +346,10 @@ public class DashboardController {
         if (userOptional.isPresent()) {
             User teacher = userOptional.get();
 
-            // Получаем статистику студентов
+            // Получить статистику студентов
             List<StudentStatsDTO> studentStats = statsService.getStudentStatsByTeacher(teacher.getId(), groupId);
 
-            // Получаем группы преподавателя для фильтра
+            // Получить группы преподавателя для фильтра
             List<Group> teacherGroups = statsService.getTeacherGroups(teacher.getId());
 
             model.addAttribute("studentStats", studentStats);
