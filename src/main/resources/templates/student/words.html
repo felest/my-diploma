@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Module Words</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+  <style>
+    .word-card {
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .word-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .phonetic {
+      font-style: italic;
+      color: #6c757d;
+    }
+    .play-btn {
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+    .play-btn:hover {
+      color: #0d6efd;
+    }
+  </style>
+</head>
+<body>
+<div th:replace="fragments/header :: header"></div>
+
+<div class="container mt-4">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a th:href="@{/student/dashboard}">Dashboard</a></li>
+      <li class="breadcrumb-item"><a th:href="@{/student/modules}">Modules</a></li>
+      <li class="breadcrumb-item active" th:text="${module.title}"></li>
+    </ol>
+  </nav>
+
+  <div class="d-flex justify-content-between align-items-center">
+    <div>
+      <h2 th:text="${module.title}"></h2>
+      <p class="text-muted" th:text="${module.description}"></p>
+    </div>
+    <a th:href="@{/student/modules}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left"></i> Back to Modules
+    </a>
+  </div>
+
+  <div class="row mt-3">
+    <div class="col-12">
+      <div class="alert alert-info">
+        <i class="bi bi-info-circle"></i>
+        Study the words below. Click on any word to see details and pronunciation.
+        When you are ready, click "Start Practice" to begin exercises.
+      </div>
+    </div>
+  </div>
+
+  <div class="row mt-4">
+    <div class="col-12">
+      <h4>Vocabulary Words</h4>
+      <p class="text-muted" th:text="'Total words: ' + ${#lists.size(words)}"></p>
+
+      <div class="row">
+        <div th:each="word : ${words}" class="col-md-6 col-lg-4 mb-3">
+          <div class="card word-card" data-bs-toggle="modal" data-bs-target="#wordModal"
+               th:data-word-english="${word.english}" th:data-word-russian="${word.russian}">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-start">
+                <div>
+                  <h5 class="card-title mb-1" th:text="${word.english}"></h5>
+                  <p class="card-text mb-1" th:text="${word.russian}"></p>
+                  <small class="phonetic" th:text="'/' + ${word.english} + '/'"></small>
+                </div>
+                <i class="bi bi-volume-up play-btn text-muted fs-5"
+                   th:data-word="${word.english}"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div th:if="${#lists.isEmpty(words)}" class="alert alert-warning">
+        <i class="bi bi-exclamation-triangle"></i>
+        No words available in this module yet.
+      </div>
+    </div>
+  </div>
+
+  <div class="row mt-5">
+    <div class="col-12 text-center">
+      <div class="d-grid gap-2 d-md-block">
+        <a th:href="@{'/student/modules/' + ${module.id} + '/practice'}"
+           class="btn btn-primary btn-lg">
+          <i class="bi bi-play-circle"></i> Start Practice
+        </a>
+        <a th:href="@{/student/modules}" class="btn btn-outline-secondary btn-lg ms-2">
+          <i class="bi bi-list-ul"></i> Back to Modules
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="wordModal" tabindex="-1" aria-labelledby="wordModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="wordModalLabel">Word Details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="text-center mb-4">
+          <h3 id="modalEnglish" class="mb-2"></h3>
+          <p id="modalRussian" class="text-muted fs-5"></p>
+          <p id="modalPhonetic" class="phonetic fs-6"></p>
+          <button class="btn btn-outline-primary mt-2" id="modalSpeakBtn">
+            <i class="bi bi-volume-up"></i> Listen to Pronunciation
+          </button>
+        </div>
+
+        <div class="border-top pt-3">
+          <h6>Learning Tips:</h6>
+          <ul class="small">
+            <li>Repeat the word aloud several times</li>
+            <li>Try to use it in a sentence</li>
+            <li>Come back to review later</li>
+          </ul>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+  // Текущее слово для модального окна
+  let currentWord = '';
+
+  // Функция для показа деталей слова
+  function showWordDetails(english, russian) {
+    currentWord = english;
+    document.getElementById('modalEnglish').textContent = english;
+    document.getElementById('modalRussian').textContent = russian;
+    document.getElementById('modalPhonetic').textContent = '/' + english + '/';
+  }
+
+  // Функция для озвучивания слова (использует Web Speech API)
+  function speakWord(word) {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+
+      const utterance = new SpeechSynthesisUtterance(word);
+      utterance.lang = 'en-US';
+      utterance.rate = 0.8;
+      utterance.pitch = 1;
+
+      window.speechSynthesis.speak(utterance);
+    } else {
+      alert('Text-to-speech is not supported in your browser. Try Chrome or Edge.');
+    }
+  }
+
+  // Инициализация при загрузке страницы
+  document.addEventListener('DOMContentLoaded', function() {
+    // Обработчик клика по карточке слова
+    document.querySelectorAll('.word-card').forEach(card => {
+      card.addEventListener('click', function() {
+        const english = this.getAttribute('data-word-english');
+        const russian = this.getAttribute('data-word-russian');
+        showWordDetails(english, russian);
+      });
+    });
+
+    // Обработчик клика по кнопке воспроизведения
+    document.querySelectorAll('.play-btn').forEach(btn => {
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const word = this.getAttribute('data-word');
+        speakWord(word);
+      });
+    });
+
+    // Обработчик для кнопки в модальном окне
+    document.getElementById('modalSpeakBtn').addEventListener('click', function() {
+      if (currentWord) {
+        speakWord(currentWord);
+      }
+    });
+
+    // Инициализация модального окна
+    const wordModal = document.getElementById('wordModal');
+    if (wordModal) {
+      wordModal.addEventListener('show.bs.modal', function () {
+        // Дополнительная инициализация при открытии модального окна
+      });
+    }
+  });
+</script>
+</body>
+</html>

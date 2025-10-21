@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Practice Module</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .result-alert {
+            transition: all 0.3s ease;
+        }
+        .exercise-container {
+            min-height: 400px;
+        }
+    </style>
+</head>
+<body>
+<div th:replace="fragments/header :: header"></div>
+
+<div class="container mt-4">
+    <!-- Навигация и информация о модуле -->
+    <div class="row">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a th:href="@{/student/dashboard}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a th:href="@{/student/modules}">Modules</a></li>
+                    <li class="breadcrumb-item active" th:text="${module.title}"></li>
+                </ol>
+            </nav>
+
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 th:text="${module.title}"></h2>
+                    <p class="text-muted" th:text="${module.description}"></p>
+                </div>
+                <div class="text-end">
+                    <div class="badge bg-primary fs-6">
+                        Exercise <span id="currentExercise" th:text="${currentExerciseIndex + 1}"></span> of <span id="totalExercises" th:text="${totalExercises}"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Прогресс-бар -->
+    <div class="row mt-3">
+        <div class="col-12">
+            <div class="progress" style="height: 10px;">
+                <div class="progress-bar"
+                     th:style="'width: ' + ${(currentExerciseIndex + 1) / totalExercises * 100} + '%;'">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Результат предыдущей попытки -->
+    <div th:if="${showResult}" class="row mt-3">
+        <div class="col-lg-8 mx-auto">
+            <div th:if="${lastResult}" class="alert alert-success result-alert">
+                <h5>Correct!</h5>
+                <p>Your answer "<span th:text="${selectedAnswer}"></span>" was correct!</p>
+            </div>
+            <div th:unless="${lastResult}" class="alert alert-danger result-alert">
+                <h5>Incorrect</h5>
+                <p>Your answer: "<span th:text="${selectedAnswer}"></span>"<br>
+                    Correct answer: "<span th:text="${correctAnswer}"></span>"</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Область текущего упражнения -->
+    <div class="row mt-4">
+        <div class="col-lg-8 mx-auto">
+            <div class="exercise-container">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title mb-0" th:text="${currentExercise.question}"></h4>
+                    </div>
+                    <div class="card-body">
+                        <form th:action="@{'/student/exercises/' + ${currentExercise.id} + '/submit'}"
+                              method="post" id="exerciseForm">
+                            <input type="hidden" name="timeSpent" id="timeSpent" value="0">
+                            <input type="hidden" name="nextExerciseIndex" th:value="${currentExerciseIndex + 1}">
+
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="radio"
+                                       id="option1"
+                                       name="selectedAnswer"
+                                       th:value="${currentExercise.option1}"
+                                       required>
+                                <label class="form-check-label" for="option1"
+                                       th:text="${currentExercise.option1}"></label>
+                            </div>
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="radio"
+                                       id="option2"
+                                       name="selectedAnswer"
+                                       th:value="${currentExercise.option2}">
+                                <label class="form-check-label" for="option2"
+                                       th:text="${currentExercise.option2}"></label>
+                            </div>
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="radio"
+                                       id="option3"
+                                       name="selectedAnswer"
+                                       th:value="${currentExercise.option3}">
+                                <label class="form-check-label" for="option3"
+                                       th:text="${currentExercise.option3}"></label>
+                            </div>
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="radio"
+                                       id="option4"
+                                       name="selectedAnswer"
+                                       th:value="${currentExercise.option4}">
+                                <label class="form-check-label" for="option4"
+                                       th:text="${currentExercise.option4}"></label>
+                            </div>
+
+                            <div class="d-grid gap-2 mt-4">
+                                <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">
+                                    Check Answer
+                                </button>
+
+                                <!-- Кнопка для последнего упражнения -->
+                                <button type="button" class="btn btn-success btn-lg" id="finishBtn" style="display: none;"
+                                        onclick="finishPractice()">
+                                    Finish Practice and View Results
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Сообщение об ошибке -->
+            <div id="errorAlert" class="alert alert-danger mt-3" style="display: none;">
+                <p>Please select an answer before checking!</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Кнопки навигации -->
+    <div class="row mt-4">
+        <div class="col-12 text-center">
+            <a th:href="@{'/student/modules/' + ${module.id} + '/words'}" class="btn btn-outline-secondary me-2">
+                Back to Words
+            </a>
+            <a th:href="@{/student/modules}" class="btn btn-outline-secondary">Exit Practice</a>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // Глобальные переменные
+    let exerciseStartTime = Date.now();
+    let isLastExercise = false;
+
+    // Инициализация при загрузке страницы
+    document.addEventListener('DOMContentLoaded', function() {
+        // Установим значение isLastExercise из Thymeleaf
+        isLastExercise = [[${isLastExercise}]];
+
+        // Показать кнопку Finish если это последнее упражнение
+        if (isLastExercise) {
+            document.getElementById('submitBtn').style.display = 'none';
+            document.getElementById('finishBtn').style.display = 'block';
+        }
+
+        // Обработчик отправки формы
+        document.getElementById('exerciseForm').addEventListener('submit', function(e) {
+            const selectedAnswer = document.querySelector('input[name="selectedAnswer"]:checked');
+
+            if (!selectedAnswer) {
+                e.preventDefault();
+                document.getElementById('errorAlert').style.display = 'block';
+                return false;
+            }
+
+            // Рассчитать время, затраченное на ответ
+            const timeSpent = Math.floor((Date.now() - exerciseStartTime) / 1000);
+            document.getElementById('timeSpent').value = timeSpent;
+
+            document.getElementById('errorAlert').style.display = 'none';
+            return true;
+        });
+
+        // Скрыть ошибку при выборе ответа
+        document.querySelectorAll('input[type="radio"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                document.getElementById('errorAlert').style.display = 'none';
+            });
+        });
+    });
+
+    // Функция для завершения практики
+    function finishPractice() {
+        const selectedAnswer = document.querySelector('input[name="selectedAnswer"]:checked');
+
+        if (!selectedAnswer) {
+            document.getElementById('errorAlert').style.display = 'block';
+            return;
+        }
+
+        // Рассчитать время, затраченное на ответ
+        const timeSpent = Math.floor((Date.now() - exerciseStartTime) / 1000);
+        document.getElementById('timeSpent').value = timeSpent;
+
+        // Отправить форму
+        document.getElementById('exerciseForm').submit();
+    }
+
+    // Автоматически скрыть результат через 3 секунды
+    document.addEventListener('DOMContentLoaded', function() {
+        const resultAlert = document.querySelector('.result-alert');
+        if (resultAlert) {
+            setTimeout(function() {
+                resultAlert.style.opacity = '0';
+                setTimeout(function() {
+                    resultAlert.style.display = 'none';
+                }, 300);
+            }, 3000);
+        }
+    });
+</script>
+</body>
+</html>

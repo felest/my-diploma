@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+</head>
+<body>
+<header th:fragment="header">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <!-- Vocabulary Trainer теперь ведет на домашнюю страницу (/) -->
+            <a class="navbar-brand" th:href="@{/}">
+                <i class="bi bi-journals"></i> Vocabulary Trainer
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <!-- Меню для преподавателей -->
+                    <li class="nav-item" sec:authorize="hasRole('TEACHER')">
+                        <a class="nav-link" th:href="@{/teacher/modules}">My Modules</a>
+                    </li>
+                    <li class="nav-item" sec:authorize="hasRole('TEACHER')">
+                        <a class="nav-link" th:href="@{/teacher/groups}">Manage Groups</a>
+                    </li>
+                    <li class="nav-item" sec:authorize="hasRole('TEACHER')">
+                        <a class="nav-link" th:href="@{/teacher/results}">Student Results</a>
+                    </li>
+
+                    <!-- Меню для студентов -->
+                    <li class="nav-item" sec:authorize="hasRole('STUDENT')">
+                        <a class="nav-link" th:href="@{/student/modules}">Practice Modules</a>
+                    </li>
+                    <li class="nav-item" sec:authorize="hasRole('STUDENT')">
+                        <a class="nav-link" th:href="@{/student/results}">My Results</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <span class="navbar-text me-3" sec:authentication="name"></span>
+                    </li>
+                    <li class="nav-item">
+                        <form th:action="@{/logout}" method="post">
+                            <button type="submit" class="btn btn-outline-light">
+                                <i class="bi bi-box-arrow-right"></i> Logout
+                            </button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+</header>
+</body>
+</html>

@@ -1,0 +1,249 @@
+/* Кастомная цветовая схема */
+:root {
+    --primary-dark: #085C4E;
+    --primary: #1A8D7A;
+    --primary-light: #6DC6B7;
+    --accent: #EFB983;
+    --dark: #2C3E50;
+    --light: #FFFFFF;
+    --gray-light: #F8F9FA;
+    --gray: #6C757D;
+    --success: #28A745;
+    --danger: #DC3545;
+    --warning: #FFC107;
+    --info: #17A2B8;
+}
+
+/* Переопределение основных цветов Bootstrap */
+.bg-primary {
+    background-color: var(--primary-dark) !important;
+}
+
+.btn-primary {
+    background-color: var(--primary-dark);
+    border-color: var(--primary-dark);
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+    background-color: var(--primary);
+    border-color: var(--primary);
+}
+
+.btn-outline-primary {
+    color: var(--primary-dark);
+    border-color: var(--primary-dark);
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--primary-dark);
+    border-color: var(--primary-dark);
+    color: white;
+}
+
+.text-primary {
+    color: var(--primary-dark) !important;
+}
+
+.bg-success {
+    background-color: var(--primary) !important;
+}
+
+.btn-success {
+    background-color: var(--primary);
+    border-color: var(--primary);
+}
+
+.btn-success:hover {
+    background-color: var(--primary-dark);
+    border-color: var(--primary-dark);
+}
+
+.bg-info {
+    background-color: var(--primary-light) !important;
+}
+
+/* Навигационная панель */
+.navbar-dark.bg-dark {
+    background-color: var(--primary-dark) !important;
+}
+
+.navbar-brand {
+    font-weight: bold;
+    color: white !important;
+}
+
+.navbar-dark .navbar-nav .nav-link {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.navbar-dark .navbar-nav .nav-link:hover {
+    color: var(--accent);
+}
+
+/* Карточки */
+.card {
+    border: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.card-header {
+    background-color: var(--primary);
+    color: white;
+    border-bottom: none;
+    font-weight: 600;
+}
+
+/* Таблицы */
+.table thead th {
+    background-color: var(--primary-dark);
+    color: white;
+    border: none;
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(109, 198, 183, 0.1);
+}
+
+/* Прогресс-бары */
+.progress {
+    background-color: #E9ECEF;
+}
+
+.progress-bar {
+    background-color: var(--primary);
+}
+
+/* Алёрты */
+.alert-success {
+    background-color: rgba(26, 141, 122, 0.1);
+    border-color: var(--primary);
+    color: var(--primary-dark);
+}
+
+.alert-danger {
+    background-color: rgba(220, 53, 69, 0.1);
+    border-color: var(--danger);
+    color: var(--danger);
+}
+
+.alert-info {
+    background-color: rgba(109, 198, 183, 0.1);
+    border-color: var(--primary-light);
+    color: var(--primary-dark);
+}
+
+.alert-warning {
+    background-color: rgba(239, 185, 131, 0.2);
+    border-color: var(--accent);
+    color: var(--dark);
+}
+
+/* Бейджи */
+.badge.bg-primary {
+    background-color: var(--primary-dark) !important;
+}
+
+.badge.bg-success {
+    background-color: var(--primary) !important;
+}
+
+.badge.bg-info {
+    background-color: var(--primary-light) !important;
+}
+
+/* Формы */
+.form-control:focus {
+    border-color: var(--primary-light);
+    box-shadow: 0 0 0 0.2rem rgba(109, 198, 183, 0.25);
+}
+
+.form-check-input:checked {
+    background-color: var(--primary);
+    border-color: var(--primary);
+}
+
+/* Хлебные крошки */
+.breadcrumb {
+    background-color: transparent;
+}
+
+.breadcrumb-item.active {
+    color: var(--primary-dark);
+}
+
+/* Акцентные элементы */
+.accent-bg {
+    background-color: var(--accent) !important;
+}
+
+.accent-text {
+    color: var(--accent) !important;
+}
+
+.btn-accent {
+    background-color: var(--accent);
+    border-color: var(--accent);
+    color: var(--dark);
+}
+
+.btn-accent:hover {
+    background-color: #e0a872;
+    border-color: #e0a872;
+    color: var(--dark);
+}
+
+/* Кастомные стили для кнопок навигации */
+.btn-outline-secondary {
+    color: var(--gray);
+    border-color: var(--gray);
+}
+
+.btn-outline-secondary:hover {
+    background-color: var(--gray);
+    border-color: var(--gray);
+    color: white;
+}
+
+/* Стили для хедера таблиц */
+.table-dark {
+    background-color: var(--primary-dark) !important;
+}
+
+/* Стили для footer карточек */
+.card-footer {
+    background-color: rgba(248, 249, 250, 0.8);
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+/* Анимации для интерактивных элементов */
+.btn, .card, .nav-link {
+    transition: all 0.3s ease;
+}
+
+/* Стили для активных элементов списка */
+.list-group-item.active {
+    background-color: var(--primary);
+    border-color: var(--primary);
+}
+
+/* Кастомные тени */
+.shadow-custom {
+    box-shadow: 0 4px 6px rgba(8, 92, 78, 0.1) !important;
+}
+
+/* Стили для модальных окон */
+.modal-header {
+    background-color: var(--primary-dark);
+    color: white;
+}
+
+.modal-footer {
+    background-color: var(--gray-light);
+}

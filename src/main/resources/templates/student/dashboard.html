@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Student Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+</head>
+<body>
+<div th:replace="fragments/header :: header"></div>
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h2>Student Dashboard</h2>
+            <p class="lead">Welcome back, <span th:text="${user.username}"></span>!</p>
+        </div>
+    </div>
+
+    <!-- Статистика прогресса -->
+    <div class="row mt-4">
+        <div class="col-md-4 mb-4">
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <h5 class="card-title">Success Rate</h5>
+                    <h2 th:text="${#numbers.formatDecimal(successRate, 1, 1)} + '%'">0%</h2>
+                    <p class="card-text">Your overall correct answers</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card text-white bg-success">
+                <div class="card-body">
+                    <h5 class="card-title">Modules Available</h5>
+                    <h2 th:text="${#lists.size(modules)}">0</h2>
+                    <p class="card-text">Total modules to practice</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card text-white bg-info">
+                <div class="card-body">
+                    <h5 class="card-title">Progress</h5>
+                    <h2 th:text="${completedModules} + '/' + ${#lists.size(modules)}">
+                        <span th:text="${completedModules}">0</span>/<span th:text="${#lists.size(modules)}">0</span>
+                    </h2>
+                    <p class="card-text">Modules completed</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Быстрый доступ к модулям -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Available Modules</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div th:each="module, iterStat : ${modules}" th:if="${iterStat.index < 3}" class="col-md-4 mb-4">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title" th:text="${module.title}"></h5>
+                                    <p class="card-text" th:text="${module.description} ?: 'No description available'"></p>
+                                    <p class="text-muted small">
+                                        <span th:text="${module.words.size()}"></span> words
+                                    </p>
+                                </div>
+                                <div class="card-footer">
+                                    <a th:href="@{'/student/modules/' + ${module.id} + '/words'}"
+                                       class="btn btn-primary w-100">Start Learning</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div th:if="${#lists.isEmpty(modules)}" class="alert alert-info mt-4">
+                        <h5>No modules available yet</h5>
+                        <p>There are no vocabulary modules available for practice at the moment.</p>
+                    </div>
+
+                    <div th:if="${#lists.size(modules) > 3}" class="text-center mt-3">
+                        <a th:href="@{/student/modules}" class="btn btn-outline-primary">
+                            View all <span th:text="${#lists.size(modules) - 3}"></span> more modules...
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
