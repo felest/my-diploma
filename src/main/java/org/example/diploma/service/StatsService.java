@@ -14,30 +14,54 @@ public class StatsService {
     private final AttemptRepository attemptRepository;
     private final GroupRepository groupRepository;
 
+    // Конструктор StatsService - внедрение зависимостей
+    // вход:
+    //   - attemptRepository - репозиторий для работы с попытками
+    //   - groupRepository - репозиторий для работы с группами
+    // выход: созданный экземпляр StatsService
     @Autowired
     public StatsService(AttemptRepository attemptRepository,  GroupRepository groupRepository) {
         this.attemptRepository = attemptRepository;
         this.groupRepository = groupRepository;
     }
 
+    // getStudentStatsByGroup - получение статистики студентов по группе
+    // вход: groupId - идентификатор группы
+    // выход: список DTO со статистикой студентов группы
+    // логика:
+    //  - получает базовую статистику студентов из репозитория
+    //  - дополняет статистику информацией о количестве модулей, в которых студент делал попытки
     public List<StudentStatsDTO> getStudentStatsByGroup(Long groupId) {
         List<StudentStatsDTO> stats = attemptRepository.findStudentStatsByGroupId(groupId);
 
-        // Дополняем статистику информацией о модулях
+        // дополнить статистику информацией о модулях
         stats.forEach(stat -> {
             Long modulesAttempted = attemptRepository.countModulesAttemptedByStudent(stat.getStudentId());
             stat.setTotalModules(modulesAttempted);
-            // Здесь можно добавить логику для completedModules, если нужно
+            // здесь можно добавить логику для completedModules, если нужно
             stat.setCompletedModules(modulesAttempted); // временно
         });
 
         return stats;
     }
 
+    // getDetailedStatsByStudent - получение детальной статистики по студенту
+    // вход: studentId - идентификатор студента
+    // выход: список DTO с детальной статистикой попыток студента
+    // логика:
+    //  - возвращает подробную информацию о каждой попытке студента
+    //  - включает данные о модулях, вопросах, ответах и времени
     public List<StudentDetailedStatsDTO> getDetailedStatsByStudent(Long studentId) {
         return attemptRepository.findDetailedStatsByStudentId(studentId);
     }
 
+    // getGroupStats - получение общей статистики по группе
+    // вход: groupId - идентификатор группы
+    // выход: DTO со статистикой группы
+    // логика:
+    //  - подсчитывает общее количество попыток в группе
+    //  - подсчитывает количество правильных попыток
+    //  - вычисляет процент успешности (success rate)
     public GroupStatsDTO getGroupStats(Long groupId) {
         Long totalAttempts = attemptRepository.countTotalAttemptsByGroupId(groupId);
         Long correctAttempts = attemptRepository.countCorrectAttemptsByGroupId(groupId);
@@ -47,12 +71,22 @@ public class StatsService {
         return new GroupStatsDTO(totalAttempts, correctAttempts, successRate);
     }
 
-    // DTO для статистики группы
+    // GroupStatsDTO - DTO для статистики группы
+    // назначение: передача агрегированной статистики по группе
+    // содержит:
+    //   - totalAttempts - общее количество попыток в группе
+    //   - correctAttempts - количество правильных попыток
+    //   - successRate - процент успешных попыток
     public static class GroupStatsDTO {
         private final Long totalAttempts;
         private final Long correctAttempts;
         private final Double successRate;
 
+        // Конструктор GroupStatsDTO
+        // вход:
+        //   - totalAttempts - общее количество попыток
+        //   - correctAttempts - количество правильных попыток
+        //   - successRate - процент успешности
         public GroupStatsDTO(Long totalAttempts, Long correctAttempts, Double successRate) {
             this.totalAttempts = totalAttempts;
             this.correctAttempts = correctAttempts;
@@ -65,13 +99,20 @@ public class StatsService {
         public Double getSuccessRate() { return successRate; }
     }
 
-
-     //Получить статистику студентов с фильтрацией по группе
+    // getStudentStatsByTeacher - получение статистики студентов преподавателя с фильтрацией по группе
+    // вход:
+    //   - teacherId - идентификатор преподавателя
+    //   - groupId - идентификатор группы для фильтрации (может быть null)
+    // выход: список DTO со статистикой студентов
+    // логика:
+    //  - если groupId указан, возвращает статистику студентов только этой группы
+    //  - если groupId не указан, возвращает статистику всех студентов преподавателя
+    //  - дополняет статистику информацией о модулях
     public List<StudentStatsDTO> getStudentStatsByTeacher(Long teacherId, Long groupId) {
         if (groupId != null) {
-            // Фильтрация по конкретной группе
+            // фильтрация по конкретной группе
             List<StudentStatsDTO> stats = attemptRepository.findStudentStatsByGroupId(groupId);
-            // Дополняем статистику информацией о модулях
+            // дополнить статистику информацией о модулях
             stats.forEach(stat -> {
                 Long modulesAttempted = attemptRepository.countModulesAttemptedByStudent(stat.getStudentId());
                 stat.setTotalModules(modulesAttempted);
@@ -79,9 +120,9 @@ public class StatsService {
             });
             return stats;
         } else {
-            // Все студенты преподавателя
+            // все студенты преподавателя
             List<StudentStatsDTO> stats = attemptRepository.findStudentStatsByTeacherId(teacherId);
-            // Дополняем статистику информацией о модулях
+            // дополнить статистику информацией о модулях
             stats.forEach(stat -> {
                 Long modulesAttempted = attemptRepository.countModulesAttemptedByStudent(stat.getStudentId());
                 stat.setTotalModules(modulesAttempted);
@@ -91,8 +132,11 @@ public class StatsService {
         }
     }
 
-
-     // Получить все группы преподавателя для фильтра
+    // getTeacherGroups - получение всех групп преподавателя для фильтра
+    // вход: teacherId - идентификатор преподавателя
+    // выход: список групп, принадлежащих преподавателю
+    // логика:
+    //  - используется для построения выпадающего списка групп в интерфейсе
     public List<Group> getTeacherGroups(Long teacherId) {
         return groupRepository.findByTeacherId(teacherId);
     }
