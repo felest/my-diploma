@@ -25,6 +25,14 @@ public class StudentController {
     private final ModuleService moduleService;
     private final WordService wordService;
 
+    // Конструктор StudentController - внедрение зависимостей сервисов
+    // вход:
+    //   - studentService - сервис для работы с функциональностью студента
+    //   - userService - сервис для работы с пользователями
+    //   - exerciseService - сервис для работы с упражнениями
+    //   - moduleService - сервис для работы с модулями
+    //   - wordService - сервис для работы со словами
+    // выход: созданный экземпляр StudentController
     @Autowired
     public StudentController(StudentService studentService,
                              UserService userService,
@@ -38,6 +46,15 @@ public class StudentController {
         this.wordService = wordService;
     }
 
+    // studentDashboard - отображение главной страницы студента
+    // вход:
+    //   - userDetails - данные аутентифицированного пользователя
+    //   - model - модель Spring MVC для передачи данных в представление
+    // выход: имя представления dashboard или перенаправление на логин
+    // логика:
+    //  - получает пользователя по имени из userDetails
+    //  - добавляет в модель доступные модули, статистику успеваемости и количество завершенных модулей
+    //  - возвращает шаблон student/dashboard
     @GetMapping("/dashboard")
     public String studentDashboard(@AuthenticationPrincipal UserDetails userDetails, Model model) {
         Optional<User> userOptional = userService.findByUsername(userDetails.getUsername());
@@ -55,27 +72,15 @@ public class StudentController {
         return "redirect:/login";
     }
 
-//    @GetMapping("/modules")
-//    public String listModules(@AuthenticationPrincipal UserDetails userDetails, Model model) {
-//        Optional<User> userOptional = userService.findByUsername(userDetails.getUsername());
-//        if (userOptional.isPresent()) {
-//            User student = userOptional.get();
-//            List<Module> modules = studentService.getAvailableModulesForStudent(student.getId());
-//
-//            // Создаем DTO для модулей с прогрессом
-//            List<ModuleProgressDTO> modulesWithProgress = modules.stream()
-//                    .map(module -> {
-//                        double progress = studentService.getModuleProgress(student.getId(), module.getId());
-//                        return new ModuleProgressDTO(module, progress);
-//                    })
-//                    .collect(Collectors.toList());
-//
-//            model.addAttribute("modules", modulesWithProgress);
-//            return "student/modules";
-//        }
-//        return "redirect:/login";
-//    }
-
+    // listModules - отображение списка доступных модулей для студента
+    // вход:
+    //   - userDetails - данные аутентифицированного пользователя
+    //   - model - модель Spring MVC для передачи данных в представление
+    // выход: имя представления со списком модулей или перенаправление на логин
+    // логика:
+    //  - получает студента по имени из userDetails
+    //  - добавляет в модель список доступных модулей
+    //  - возвращает шаблон student/modules
     @GetMapping("/modules")
     public String listModules(@AuthenticationPrincipal UserDetails userDetails, Model model) {
         Optional<User> userOptional = userService.findByUsername(userDetails.getUsername());
@@ -88,6 +93,21 @@ public class StudentController {
         return "redirect:/login";
     }
 
+    // submitAnswer - обработка ответа студента на упражнение
+    // вход:
+    //   - userDetails - данные аутентифицированного пользователя
+    //   - exerciseId - идентификатор упражнения
+    //   - selectedAnswer - выбранный студентом ответ
+    //   - timeSpent - время, затраченное на ответ (в секундах, по умолчанию 0)
+    //   - nextExerciseIndex - индекс следующего упражнения (опционально)
+    //   - redirectAttributes - атрибуты для перенаправления (результаты, ошибки)
+    // выход: строка перенаправления на страницу практики модуля
+    // логика:
+    //  - сохраняет попытку ответа студента
+    //  - проверяет правильность ответа
+    //  - добавляет флаги для отображения результата
+    // исключения:
+    //  - Exception - если произошла ошибка при сохранении попытки или проверке ответа
     @PostMapping("/exercises/{exerciseId}/submit")
     public String submitAnswer(@AuthenticationPrincipal UserDetails userDetails,
                                @PathVariable Long exerciseId,
@@ -103,19 +123,19 @@ public class StudentController {
                 User user = userOptional.get();
                 Exercise exercise = exerciseOptional.get();
 
-                // Сохраняем попытку
+                // сохранить попытку
                 studentService.saveAttempt(user, exercise, selectedAnswer, timeSpent);
 
-                // Проверяем правильность ответа
+                // проверить правильность ответа
                 boolean isCorrect = studentService.checkAnswer(exercise, selectedAnswer);
 
-                // Добавляем флаги для отображения результата
+                // добавить флаги для отображения результата
                 redirectAttributes.addFlashAttribute("showResult", true);
                 redirectAttributes.addFlashAttribute("lastResult", isCorrect);
                 redirectAttributes.addFlashAttribute("correctAnswer", exercise.getCorrectAnswer());
                 redirectAttributes.addFlashAttribute("selectedAnswer", selectedAnswer);
 
-                // Если передан индекс следующего упражнения, перенаправляем на него
+                // если передан индекс следующего упражнения, перенаправить на него
                 if (nextExerciseIndex != null) {
                     redirectAttributes.addAttribute("exerciseIndex", nextExerciseIndex);
                 }
@@ -129,6 +149,20 @@ public class StudentController {
         return "redirect:/student/modules";
     }
 
+    // practiceModule - отображение упражнения для практики модуля
+    // вход:
+    //   - userDetails - данные аутентифицированного пользователя
+    //   - id - идентификатор модуля
+    //   - exerciseIndex - индекс текущего упражнения (по умолчанию 0)
+    //   - model - модель Spring MVC для передачи данных в представление
+    // выход: имя представления для практики или перенаправление
+    // логика:
+    //  - проверяет доступ студента к модулю
+    //  - получает список упражнений модуля
+    //  - определяет текущее упражнение по индексу
+    //  - добавляет в модель данные модуля, упражнений и информацию о прогрессе
+    // исключения:
+    //  - возможны исключения при работе с базой данных
     @GetMapping("/modules/{id}/practice")
     public String practiceModule(@AuthenticationPrincipal UserDetails userDetails,
                                  @PathVariable Long id,
@@ -138,7 +172,7 @@ public class StudentController {
         if (userOptional.isPresent()) {
             User student = userOptional.get();
 
-            // Проверяем, доступен ли модуль студенту
+            // проверить, доступен ли модуль студенту
             List<Module> availableModules = studentService.getAvailableModulesForStudent(student.getId());
             boolean hasAccess = availableModules.stream().anyMatch(m -> m.getId().equals(id));
 
@@ -150,7 +184,7 @@ public class StudentController {
             if (module != null) {
                 List<Exercise> exercises = studentService.getExercisesForModule(id);
 
-                // Проверяем, есть ли упражнения
+                // проверить, есть ли упражнения
                 if (exercises.isEmpty()) {
                     return "redirect:/student/modules/" + id + "/words?error=no_exercises";
                 }
@@ -158,7 +192,7 @@ public class StudentController {
                 Exercise currentExercise = studentService.getExerciseByIndex(id, exerciseIndex);
 
                 if (currentExercise == null) {
-                    // Если упражнения закончились, перенаправляем на результаты
+                    // если упражнения закончились, перенаправить на результаты
                     return "redirect:/student/results";
                 }
 
@@ -175,6 +209,15 @@ public class StudentController {
         return "redirect:/student/modules";
     }
 
+    // viewResults - отображение результатов и статистики студента
+    // вход:
+    //   - userDetails - данные аутентифицированного пользователя
+    //   - model - модель Spring MVC для передачи данных в представление
+    // выход: имя представления с результатами или перенаправление на логин
+    // логика:
+    //  - получает все попытки студента
+    //  - подсчитывает статистику: количество правильных/неправильных ответов, уникальные модули
+    //  - добавляет статистику и попытки в модель
     @GetMapping("/results")
     public String viewResults(@AuthenticationPrincipal UserDetails userDetails, Model model) {
         Optional<User> userOptional = userService.findByUsername(userDetails.getUsername());
@@ -182,7 +225,7 @@ public class StudentController {
             User user = userOptional.get();
             List<Attempt> attempts = studentService.getUserAttempts(user.getId());
 
-            // Подсчет статистики в контроллере
+            // подсчет статистики в контроллере
             long correctCount = attempts.stream().filter(Attempt::isCorrect).count();
             long incorrectCount = attempts.size() - correctCount;
 
@@ -203,7 +246,16 @@ public class StudentController {
         return "redirect:/login";
     }
 
-    // метод для просмотра слов
+    // viewModuleWords - отображение списка слов модуля
+    // вход:
+    //   - userDetails - данные аутентифицированного пользователя
+    //   - id - идентификатор модуля
+    //   - model - модель Spring MVC для передачи данных в представление
+    // выход: имя представления со словами модуля или перенаправление
+    // логика:
+    //  - проверяет доступ студента к модулю
+    //  - получает список слов модуля
+    //  - добавляет модуль и слова в модель
     @GetMapping("/modules/{id}/words")
     public String viewModuleWords(@AuthenticationPrincipal UserDetails userDetails,
                                   @PathVariable Long id,
@@ -212,7 +264,7 @@ public class StudentController {
         if (userOptional.isPresent()) {
             User student = userOptional.get();
 
-            // Проверяем, доступен ли модуль студенту
+            // проверить, доступен ли модуль студенту
             List<Module> availableModules = studentService.getAvailableModulesForStudent(student.getId());
             boolean hasAccess = availableModules.stream().anyMatch(m -> m.getId().equals(id));
 
