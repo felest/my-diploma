@@ -32,3 +32,15 @@
 - **Web Speech API**: озвучка английских слов в браузере
 - **Progress tracking**: отслеживание прогресса студентов
 - **Responsive design**: адаптивный интерфейс для разных устройств
+
+
+## 🏗️ Архитектура системы
+
+### Диаграмма классов
+![Class Diagram](class-diagram.png)
+
+**Описание архитектуры:**
+- **Модели (Entities):** User, Group, Module, Word, Exercise, Attempt
+- **Сервисы (Business Logic):** UserService, ModuleService, GroupService, etc.
+- **Контроллеры (Web Layer):** AuthController, DashboardController, etc.
+- **Репозитории (Data Access):** UserRepository, ModuleRepository, etc.
